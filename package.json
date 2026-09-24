@@ -1,0 +1,33 @@
+{
+  "name": "opencode-fork-context",
+  "version": "0.1.0",
+  "description": "An OpenCode plugin that treats forked conversation history as context, not unfinished work.",
+  "type": "module",
+  "author": "David Roman",
+  "license": "MIT",
+  "homepage": "https://github.com/davdroman/opencode-fork-context#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/davdroman/opencode-fork-context.git"
+  },
+  "bugs": {
+    "url": "https://github.com/davdroman/opencode-fork-context/issues"
+  },
+  "exports": {
+    ".": "./fork-context.js"
+  },
+  "files": [
+    "fork-context.js"
+  ],
+  "keywords": [
+    "fork",
+    "opencode",
+    "opencode-plugin"
+  ],
+  "scripts": {
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@opencode/plugin": "^2.0.16"
+  }
+}
