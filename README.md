@@ -38,6 +38,10 @@ Before each agent model request, the plugin checks the session’s fork metadata
 > The first user prompt after the fork establishes this session’s task. Do not resume unfinished work from the source session unless explicitly requested.
 >
 > Subsequent prompts follow the task established in this fork; this reminder does not reset that task on each turn or tool continuation.
+>
+> When delegating work for this fork, create fresh subagents owned by this session. Subagent IDs and running agents mentioned in inherited history belong to their original sessions; leave them untouched unless the user explicitly authorizes coordination with those agents.
+>
+> Do not resume, steer, interrupt, or send messages to inherited agents through subagent tools, session APIs, or relay tools. A cross-session ownership error is a boundary to respect, not a reason to switch tools. Continuing the source task does not by itself authorize taking over its agents.
 
 The instruction also identifies the source session. It stays present across turns and tool calls, while ordinary sessions receive no additional instructions.
 
