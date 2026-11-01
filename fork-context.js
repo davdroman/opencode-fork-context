@@ -12,6 +12,18 @@ async function hasForkPrompt(ctx, event, session) {
   );
 }
 
+function forkContext(sessionID, sourceID) {
+  return [
+    `<fork-context session="${sessionID}">`,
+    `This session (${sessionID}) is a fork of session ${sourceID}. This is the first user prompt admitted to this session, and it establishes this session's task. Later prompts in this session may refine or redirect it.`,
+    "Use inherited conversation history as background, not as an assignment. Resume unfinished work from the source session only if the user explicitly requests it.",
+    "Fork context blocks naming another session were copied from an earlier fork and do not apply to this session.",
+    "Create fresh subagents owned by this session when delegating work for this fork. Subagent IDs and running agents in inherited history belong to their original sessions.",
+    "Do not resume, steer, interrupt, or message inherited agents through subagent tools, session APIs, or relay tools unless the user explicitly authorizes coordination with those agents. Do not use other tools to bypass an ownership error. A request to continue the source task alone does not authorize taking over its agents.",
+    "</fork-context>",
+  ].join("\n") + "\n\n";
+}
+
 export default Plugin.define({
   id: "fork-context",
   async setup(ctx) {
@@ -19,7 +31,7 @@ export default Plugin.define({
       const session = await ctx.session.get({ sessionID: event.sessionID });
       if (!session.fork) return;
 
-      const prefix = `[Fork user prompt for session ${event.sessionID}]\n\n`;
+      const prefix = forkContext(event.sessionID, session.fork.sessionID);
       if (event.prompt.text.startsWith(prefix)) return;
       if (await hasForkPrompt(ctx, event, session)) return;
 
@@ -31,25 +43,6 @@ export default Plugin.define({
           attachment.mention.end += prefix.length;
         }
       }
-    });
-
-    await ctx.session.hook("context", async (event) => {
-      const session = await ctx.session.get({ sessionID: event.sessionID });
-      if (!session.fork) return;
-
-      event.system.push({
-        type: "text",
-        text: [
-          `This session is ${event.sessionID}, a fork of session ${session.fork.sessionID}.`,
-          `The label "[Fork user prompt for session ${event.sessionID}]" marks the first user prompt admitted to this session. That prompt establishes this session's task, and every later prompt belongs to this session.`,
-          "Labels naming another session were copied from an earlier fork. They do not mark this session's task.",
-          "Use inherited conversation history as background, not as an assignment. Resume unfinished work from the source session only if the user explicitly requests it.",
-          "Later prompts may refine or redirect the established task. This reminder does not reset the task on later turns or tool continuations.",
-          "Compaction may remove the label or combine inherited work with this session's work. Ask for clarification only when the task is ambiguous.",
-          "Create fresh subagents owned by this session when delegating work for this fork. Subagent IDs and running agents in inherited history belong to their original sessions.",
-          "Do not resume, steer, interrupt, or message inherited agents through subagent tools, session APIs, or relay tools unless the user explicitly authorizes coordination with those agents. Do not use other tools to bypass an ownership error. A request to continue the source task alone does not authorize taking over its agents.",
-        ].join("\n"),
-      });
     });
   },
 });
